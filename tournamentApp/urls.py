@@ -15,14 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 # tournamentApp/urls.py
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from tournament.views import TournamentViewSet  # Import from the correct app
-
-router = DefaultRouter()
-router.register(r'tournaments', TournamentViewSet)
+from django.urls import path
+from tournament.views import tournament_list, tournament_detail
 
 urlpatterns = [
-    path('api/', include(router.urls)),  # Note the 'api/' namespace
+    path('api/tournaments/', tournament_list, name='tournament-list'),
+    path('api/tournaments/<int:pk>/', tournament_detail, name='tournament-detail'),
 ]
-
