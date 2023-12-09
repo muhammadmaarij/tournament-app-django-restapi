@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Tournament
@@ -6,6 +7,7 @@ from .serializers import TournamentSerializer
 
 
 @api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser])
 def tournament_list(request):
     """
     List all tournaments or create a new tournament.

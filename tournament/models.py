@@ -26,6 +26,10 @@ class Tournament(models.Model):
     end_date = models.DateField()
     winning_prize = models.CharField(max_length=100)
     details = models.TextField()
+    image = models.ImageField(
+        upload_to='tournament_images/', null=True, blank=True)
+    creator = models.ForeignKey(
+        'Player', on_delete=models.SET_NULL, null=True, related_name='created_tournaments')
 
     def __str__(self):
         return self.title
