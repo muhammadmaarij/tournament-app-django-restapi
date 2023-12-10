@@ -41,7 +41,7 @@ class Match(models.Model):
         Team, on_delete=models.CASCADE, related_name='team1_matches')
     team2 = models.ForeignKey(
         Team, on_delete=models.CASCADE, related_name='team2_matches')
-    # Assuming this is a text field for spectators
+
     spectator = models.TextField(blank=True, null=True)
     time = models.DateTimeField()
     match_link = models.URLField(blank=True, null=True)
