@@ -2,8 +2,8 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Tournament, Match, Team
-from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer
+from .models import Tournament, Match, Team, TournamentResult
+from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer, TournamentResultSerializer
 from .utils import create_match, get_match, update_match, delete_match, generate_knockout_stages
 
 
@@ -136,4 +136,45 @@ def team_detail(request, pk):
 
     elif request.method == 'DELETE':
         team.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+def tournament_result_list(request):
+    if request.method == 'GET':
+        results = TournamentResult.objects.all()
+        serializer = TournamentResultSerializer(results, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = TournamentResultSerializer(data=request.data)
+        if serializer.is_valid():
+            # Create a new TournamentResult instance
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def tournament_result_detail(request, pk):
+    try:
+        result = TournamentResult.objects.get(pk=pk)
+    except TournamentResult.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = TournamentResultSerializer(result)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = TournamentResultSerializer(result, data=request.data)
+        if serializer.is_valid():
+            # Update the TournamentResult instance
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        # Delete the TournamentResult instance
+        result.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
