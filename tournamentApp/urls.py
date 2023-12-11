@@ -16,7 +16,7 @@ Including another URLconf
 """
 # tournamentApp/urls.py
 from django.urls import path
-from tournament.views import tournament_list, tournament_detail, match_list, match_detail
+from tournament.views import tournament_list, tournament_detail, match_list, match_detail, team_detail, team_list
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/tournaments/<int:pk>/', tournament_detail, name='tournament-detail'),
     path('api/matches/', match_list, name='match-list'),
     path('api/matches/<int:pk>/', match_detail, name='match-detail'),
+    path('api/teams/', team_list, name='team-list'),
+    path('api/teams/<int:pk>/', team_detail, name='team-detail'),
 ]
 
 if settings.DEBUG:
