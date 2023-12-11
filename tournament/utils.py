@@ -22,19 +22,16 @@ def generate_knockout_stages(tournament_id):
                 team1=None,  # Empty slots for teams
                 team2=None,
                 tournament=tournament,
-                time=None 
+                time=None  # Set time as None for now
             )
             match_list.append(match)
 
     return match_list
 
 
-# Function to create a new match
 def create_match(data):
     match = Match.objects.create(**data)
     return match
-
-# Function to retrieve a specific match
 
 
 def get_match(match_id):
@@ -43,19 +40,24 @@ def get_match(match_id):
     except Match.DoesNotExist:
         return None
 
-# Function to update an existing match
-
 
 def update_match(match_id, update_data):
     match = get_match(match_id)
     if match:
         for field, value in update_data.items():
-            setattr(match, field, value)
+            if field in ['tournament', 'team1', 'team2'] and isinstance(value, int):
+                # Handle ForeignKey fields
+                try:
+                    related_instance = {'tournament': Tournament, 'team1': Team, 'team2': Team}[
+                        field].objects.get(pk=value)
+                    setattr(match, field, related_instance)
+                except (Tournament.DoesNotExist, Team.DoesNotExist):
+                    continue  # or handle the error as needed
+            else:
+                setattr(match, field, value)
         match.save()
         return match
     return None
-
-# Function to delete a match
 
 
 def delete_match(match_id):
