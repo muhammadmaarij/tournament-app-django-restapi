@@ -2,8 +2,9 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Tournament
-from .serializers import TournamentSerializer
+from .models import Tournament, Match
+from .serializers import TournamentSerializer, MatchSerializer
+from .utils import create_match, get_match, update_match, delete_match, generate_knockout_stages
 
 
 @api_view(['GET', 'POST'])
@@ -20,7 +21,15 @@ def tournament_list(request):
     elif request.method == 'POST':
         serializer = TournamentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            tournament = serializer.save()
+
+            # Automatically generate knockout stage matches
+            try:
+                generate_knockout_stages(tournament.id)
+            except ValueError as e:
+                tournament.delete()  # Rollback the creation of the tournament
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -49,3 +58,38 @@ def tournament_detail(request, pk):
     elif request.method == 'DELETE':
         tournament.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+def match_list(request):
+    if request.method == 'GET':
+        matches = Match.objects.all()
+        serializer = MatchSerializer(matches, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        match = create_match(request.data)
+        serializer = MatchSerializer(match)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def match_detail(request, pk):
+    if request.method == 'GET':
+        match = get_match(pk)
+        if match:
+            serializer = MatchSerializer(match)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'PUT':
+        match = update_match(pk, request.data)
+        if match:
+            serializer = MatchSerializer(match)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        if delete_match(pk):
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)

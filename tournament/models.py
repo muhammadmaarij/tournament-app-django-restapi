@@ -37,13 +37,15 @@ class Tournament(models.Model):
 
 class Match(models.Model):
     name = models.CharField(max_length=100)
-    team1 = models.ForeignKey(
-        Team, on_delete=models.CASCADE, related_name='team1_matches')
-    team2 = models.ForeignKey(
-        Team, on_delete=models.CASCADE, related_name='team2_matches')
+    tournament = models.ForeignKey(
+        Tournament, on_delete=models.CASCADE, related_name='matches', null=True)
+    team1 = models.ForeignKey(Team, on_delete=models.CASCADE,
+                              related_name='team1_matches', null=True, blank=True)
+    team2 = models.ForeignKey(Team, on_delete=models.CASCADE,
+                              related_name='team2_matches', null=True, blank=True)
 
     spectator = models.TextField(blank=True, null=True)
-    time = models.DateTimeField()
+    time = models.DateTimeField(null=True, blank=True)
     match_link = models.URLField(blank=True, null=True)
 
     def __str__(self):
