@@ -5,7 +5,7 @@ from .models import Tournament, Match, Team, TournamentResult
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = '__all__'  # Or list specific fields you want to include
+        fields = '__all__'
 
 
 class MatchSerializer(serializers.ModelSerializer):
