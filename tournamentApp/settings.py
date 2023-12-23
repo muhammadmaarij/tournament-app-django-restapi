@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'EsportsArena',
         'USER': 'postgres',
-        'PASSWORD': 'double2aa',
+        'PASSWORD': '123',
         'HOST': 'localhost',
     }
 }
