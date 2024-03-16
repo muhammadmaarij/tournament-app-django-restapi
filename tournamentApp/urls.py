@@ -16,12 +16,14 @@ Including another URLconf
 """
 # tournamentApp/urls.py
 from django.urls import path
-from tournament.views import tournament_list, tournament_detail, match_list, match_detail, team_detail, team_list, tournament_result_detail, tournament_result_list
+from tournament.views import tournament_list, tournament_detail, match_list, match_detail, team_detail, team_list, tournament_result_detail, tournament_result_list, player_detail, player_list
 from django.conf import settings
 from django.conf.urls.static import static
 
 
 urlpatterns = [
+    path('api/players/', player_list, name='player-list'),
+    path('api/players/<int:pk>/', player_detail, name='player-detail'),
     path('api/tournaments/', tournament_list, name='tournament-list'),
     path('api/tournaments/<int:pk>/', tournament_detail, name='tournament-detail'),
     path('api/matches/', match_list, name='match-list'),
