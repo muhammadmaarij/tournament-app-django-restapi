@@ -5,6 +5,42 @@ from rest_framework import status
 from .models import Tournament, Match, Team, TournamentResult, Player
 from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer, TournamentResultSerializer, PlayerSerializer
 from .utils import create_match, get_match, update_match, delete_match, generate_knockout_stages
+import stripe
+from django.conf import settings
+from django.shortcuts import redirect
+import logging
+
+logger = logging.getLogger(__name__)
+
+# This is your test secret API key.
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@api_view(['POST'])
+def create_checkout_session(request):
+    try:
+        logger.info("Creating Stripe checkout session")
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': 'price_1Ow4wuHJ4pSO9vPN2wwPQaLg',
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=settings.SITE_URL +
+            '/?success=true&session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=settings.SITE_URL + '/?canceled=true',
+        )
+        logger.info(f"Checkout session created: {checkout_session.url}")
+        # return redirect(checkout_session.url)
+        return Response({'url': checkout_session.url})
+    except:
+        logger.error(f"Error creating checkout session: {e}")
+        return Response(
+            {'error': 'Something went wrong when creating the checkout session'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['GET', 'POST'])
