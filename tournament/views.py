@@ -55,7 +55,6 @@ def create_checkout_session(request, pk):
                         'unit_amount': int(product.price * 100),
                         'product_data': {
                             'name': product.name,
-                            # Adjust field if needed
                             'images': [f"{API_URL}{product.product_image.url}"],
                         },
                     },
