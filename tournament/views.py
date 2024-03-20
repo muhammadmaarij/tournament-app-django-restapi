@@ -1,9 +1,9 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Tournament, Match, Team, TournamentResult, Player
-from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer, TournamentResultSerializer, PlayerSerializer
+from rest_framework import status, permissions
+from .models import Tournament, Match, Team, TournamentResult, Player, Product
+from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer, TournamentResultSerializer, PlayerSerializer, ProductSerializer
 from .utils import create_match, get_match, update_match, delete_match, generate_knockout_stages
 import stripe
 from django.conf import settings
@@ -14,33 +14,93 @@ logger = logging.getLogger(__name__)
 
 # This is your test secret API key.
 stripe.api_key = settings.STRIPE_SECRET_KEY
+API_URL = "http://localhost:8000"
+
+
+@api_view(['GET'])
+def product_preview(request, pk):
+    """
+    Retrieve a product instance.
+    """
+    try:
+        product = Product.objects.get(pk=pk)
+    except Product.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
 
 
 @api_view(['POST'])
-def create_checkout_session(request):
+def add_product(request):
+    if request.method == 'POST':
+        serializer = ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def create_checkout_session(request, pk):
     try:
-        logger.info("Creating Stripe checkout session")
+        product = Product.objects.get(id=pk)
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price': 'price_1Ow4wuHJ4pSO9vPN2wwPQaLg',
+                    'price_data': {
+                        'currency': 'usd',
+                        # Assume price is a decimal, multiply by 100
+                        'unit_amount': int(product.price * 100),
+                        'product_data': {
+                            'name': product.name,
+                            # Adjust field if needed
+                            'images': [f"{API_URL}{product.product_image.url}"],
+                        },
+                    },
                     'quantity': 1,
                 },
             ],
+            metadata={
+                "product_id": product.id
+            },
             mode='payment',
-            success_url=settings.SITE_URL +
-            '/?success=true&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=settings.SITE_URL + '/?canceled=true',
+            success_url=settings.SITE_URL + '?success=true',
+            cancel_url=settings.SITE_URL + '?canceled=true',
         )
-        logger.info(f"Checkout session created: {checkout_session.url}")
-        # return redirect(checkout_session.url)
         return Response({'url': checkout_session.url})
-    except:
-        logger.error(f"Error creating checkout session: {e}")
-        return Response(
-            {'error': 'Something went wrong when creating the checkout session'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    except Product.DoesNotExist:
+        return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'msg': 'Something went wrong while creating Stripe session', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['POST'])
+# def create_checkout_session(request):
+#     try:
+#         logger.info("Creating Stripe checkout session")
+#         checkout_session = stripe.checkout.Session.create(
+#             line_items=[
+#                 {
+#                     'price': 'price_1Ow4wuHJ4pSO9vPN2wwPQaLg',
+#                     'quantity': 1,
+#                 },
+#             ],
+#             mode='payment',
+#             success_url=settings.SITE_URL +
+#             '/?success=true&session_id={CHECKOUT_SESSION_ID}',
+#             cancel_url=settings.SITE_URL + '/?canceled=true',
+#         )
+#         logger.info(f"Checkout session created: {checkout_session.url}")
+#         # return redirect(checkout_session.url)
+#         return Response({'url': checkout_session.url})
+#     except:
+#         logger.error(f"Error creating checkout session: {e}")
+#         return Response(
+#             {'error': 'Something went wrong when creating the checkout session'},
+#             status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#         )
 
 
 @api_view(['GET', 'POST'])

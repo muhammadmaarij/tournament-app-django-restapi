@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from .models import Tournament, Match, Team, TournamentResult, Player
+from .models import Tournament, Match, Team, TournamentResult, Player, Product
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
 
 
 class PlayerSerializer(serializers.ModelSerializer):
