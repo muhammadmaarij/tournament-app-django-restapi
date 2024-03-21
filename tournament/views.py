@@ -2,13 +2,17 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from .models import Tournament, Match, Team, TournamentResult, Player, Product
+from .models import Tournament, Match, Team, TournamentResult, Player, Product, PaymentHistory
 from .serializers import TournamentSerializer, MatchSerializer, TeamSerializer, TournamentResultSerializer, PlayerSerializer, ProductSerializer
 from .utils import create_match, get_match, update_match, delete_match, generate_knockout_stages
 import stripe
 from django.conf import settings
 from django.shortcuts import redirect
 import logging
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +78,51 @@ def create_checkout_session(request, pk):
     except Exception as e:
         return Response({'msg': 'Something went wrong while creating Stripe session', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+def stripe_webhook_view(request):
+    if request.method == 'POST':
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        event = None
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_SECRET_WEBHOOK
+            )
+        except ValueError as e:
+            # Invalid payload
+            return HttpResponse('Invalid payload', status=400)
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            return HttpResponse('Invalid signature', status=400)
+
+        # Handle the event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            customer_email = session['customer_details']['email']
+            prod_id = session['metadata']['product_id']
+            product = Product.objects.get(id=prod_id)
+
+            # Sending confirmation email
+            send_mail(
+                subject="Payment successful",
+                message=f"Thank you for your purchase! Your order is ready. Download URL: {product.book_url}",
+                recipient_list=[customer_email],
+                from_email=settings.DEFAULT_FROM_EMAIL
+            )
+
+            # Create payment history
+            # Assuming you have a user with the email, otherwise remove or handle user retrieval.
+            # user = User.objects.get(email=customer_email) or None
+            PaymentHistory.objects.create(product=product, payment_status=True)
+
+            return HttpResponse('Webhook handled', status=200)
+
+        # Other webhook events can be handled here
+
+        return HttpResponse('Webhook received', status=200)
+    else:
+        return HttpResponse('Method not allowed', status=405)
 
 # @api_view(['POST'])
 # def create_checkout_session(request):

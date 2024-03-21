@@ -16,7 +16,7 @@ Including another URLconf
 """
 # tournamentApp/urls.py
 from django.urls import path
-from tournament.views import tournament_list, tournament_detail, match_list, match_detail, team_detail, team_list, tournament_result_detail, tournament_result_list, player_detail, player_list, product_preview, create_checkout_session, add_product
+from tournament.views import tournament_list, tournament_detail, match_list, match_detail, team_detail, team_list, tournament_result_detail, tournament_result_list, player_detail, player_list, product_preview, create_checkout_session, add_product, stripe_webhook_view
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
@@ -38,8 +38,8 @@ urlpatterns = [
     # path('api/stripe/create-checkout-session/', create_checkout_session,
     #      name='create-checkout-session'),
     # Additional URL patterns
-    # path('api/stripe-webhook/', csrf_exempt(stripe_webhook_view),
-    #      name='stripe-webhook'),
+    path('api/webhook/', csrf_exempt(stripe_webhook_view),
+         name='stripe-webhook'),
     path('api/product/<int:pk>/', product_preview, name='product-preview'),
     path('api/products/add/', add_product, name='add-product'),
     path('api/create-checkout-session/<int:pk>/',
