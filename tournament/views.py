@@ -108,8 +108,14 @@ def stripe_webhook_view(request):
                 subject="Payment successful",
                 message=f"Thank you for your purchase! Your order is ready. Download URL: {product.book_url}",
                 recipient_list=[customer_email],
-                from_email=settings.DEFAULT_FROM_EMAIL
+                from_email=settings.EMAIL_HOST_USER
             )
+            # send_mail(
+            #     subject="Payment successful",
+            #     message=f"Thank you for your purchase! Your order is ready. Download URL: {product.book_url}",
+            #     recipient_list=[customer_email],
+            #     from_email=settings.DEFAULT_FROM_EMAIL
+            # )
 
             # Create payment history
             # Assuming you have a user with the email, otherwise remove or handle user retrieval.

@@ -131,9 +131,19 @@ STRIPE_SECRET_KEY = 'sk_test_51Ovwb2HJ4pSO9vPNqqFTqxN5e4Au5dujivXfz8Dq0ypZNhO1wX
 
 STRIPE_SECRET_WEBHOOK = 'whsec_32e465ebe8a346aa57887ede0a9f142ae3c672e6dc45d21adc29dda24f916d7b'
 
-DEFAULT_FROM_EMAIL = 'muhammadmaarij7@gmail.com'
+# DEFAULT_FROM_EMAIL = 'muhammadmaarij7@gmail.com'
 
-EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "whimsoltech@gmail.com"
+EMAIL_HOST_PASSWORD = "xtpioxvqmqztelgp"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
