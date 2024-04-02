@@ -142,7 +142,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_PORT = 587
 EMAIL_HOST_USER = "whimsoltech@gmail.com"
-EMAIL_HOST_PASSWORD = "xtpioxvqmqztelgp"
+EMAIL_HOST_PASSWORD = "ceibyvugimepshbf"
 
 
 # Default primary key field type
